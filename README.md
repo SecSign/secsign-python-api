@@ -10,15 +10,16 @@ This Python API allows a secure login using a private key on a smart phone runni
 
 **Usage**
 
-* Include the API `SecSignIDApi.rb` in your project.
+* Include the API `SecSignIDApi.py` in your project.
 * Request an authentication session
 * Show access pass to user and save session parameters 
 * Get session state 
 * React to the state and have the user logged in
 
 
-Check out the included example `example.pl` to see how it works or 
+Check out the included example `example.py` to see how it works or 
 have a look at the how to use tutorial for PHP <https://secsign.com/en/php-integrate-tutorial.html>. The process is exactly the same in python.
+
 Or visit <https://www.secsign.com> for more informations.
 
 **Files**
