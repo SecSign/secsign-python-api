@@ -18,7 +18,7 @@ This Python API allows a secure login using a private key on a smart phone runni
 
 
 Check out the included example `example.py` to see how it works or 
-have a look at the how to use tutorial for PHP <https://secsign.com/en/php-integrate-tutorial.html>. The process is exactly the same in python.
+have a look at the how to use tutorial for PHP <https://www.secsign.com/en/php-integrate-tutorial.html>. The process is exactly the same in python.
 
 Or visit <https://www.secsign.com> for more informations.
 
@@ -29,7 +29,7 @@ Or visit <https://www.secsign.com> for more informations.
 
 **Requirements**
 
-The communication with the ID server is done using pycurl. So the package `pycurl`must be installed on the system.
+The communication with the ID server is done using pycurl. So the package `pycurl` must be installed on the system.
 
 
 ===============
