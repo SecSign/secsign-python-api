@@ -1,9 +1,12 @@
 #!/usr/bin/python
 
+
+# $Id: example.py,v 1.5 2014/05/28 15:10:23 titus Exp $
+
 #
 # SecSign ID Api example in python.
 #
-# (c) copyright SecSign Technologies Inc.
+# (c) 2014 SecSign Technologies Inc.
 #
 
 import SecSignIDApi.py
