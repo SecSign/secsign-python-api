@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 
-# $Id: example.py,v 1.5 2014/05/28 15:10:23 titus Exp $
+# $Id: example.py,v 1.6 2014/11/26 17:25:15 titus Exp $
 
 #
 # SecSign ID Api example in python.
@@ -9,9 +9,10 @@
 # (c) 2014 SecSign Technologies Inc.
 #
 
-import SecSignIDApi.py
 import time
-
+from SecSignIDApi import SecSignIDApi
+from SecSignIDApi import AuthSession
+from SecSignIDApi import InputError
 #
 #
 # Example how to retrieve an authentication session, ask its status and withdraw the authentication session.
@@ -22,7 +23,7 @@ import time
 # Create an instance of SecSignIDApi.
 #
 print("create new instance of SecSignIDApi.")
-secSignIDApi = SecSignIDApi();
+secSignIDApi = SecSignIDApi()
 
 #
 # The servicename and address is mandatory. It has to be send to the server.
@@ -41,10 +42,9 @@ secsignid = "username";
 
 try:
     authSession = secSignIDApi.requestAuthSession(secsignid, servicename, serviceaddress)
-    print("got authSession '" + authSession + "'")
+    print("got authSession '" + str(authSession) + "'")
 
-except Error as e:
-
+except InputError as e:
     print("could not get an authentication session for SecSign ID '" + secsignid + "' : " + e.strerror)
     exit(1)
 
@@ -59,31 +59,30 @@ authSessionState = authSession.NOSTATE
 try:
     authSessionState = secSignIDApi.getAuthSessionState(authSession)
     print("got auth session state: " + authSessionState);
-except Error as e:
-    print("could not get status for authentication session '" + authSession.authSessionID + "' : " + e.strerror)
+except InputError as e:
+    print("could not get status for authentication session '" + str(authSession.authSessionID) + "' : " + e.strerror)
     exit(1)
 
 
-
 # If the script shall wait till the user has accepted the auth session or denied it,  it has to ask the server frequently
-secondsToWaitUntilNextCheck = 10;
-noError = true;
+secondsToWaitUntilNextCheck = 10
+noError = True
 
-while noError and authSessionState == authSession.PENDING or authSessionState == authSession.FETCHED:
+while noError and (int(authSessionState) == AuthSession.PENDING or int(authSessionState) == AuthSession.FETCHED):
     try:
         authSessionState = secSignIDApi.getAuthSessionState(authSession);
         print("auth session state: " + authSessionState)
 
-        if authSessionState == authSessionPENDING or authSessionState == authSessionFETCHED:
+        if int(authSessionState) == AuthSession.PENDING or int(authSessionState) == AuthSession.FETCHED:
           time.sleep(secondsToWaitUntilNextCheck)
-    except Error as e:
+    except InputError as e:
         print("could not get auth session status for auth session '" + authSession.authSessionID + "' : " + e.strerror)
-        noError = false;
+        noError = False;
 
 
 
 
-if authSessionState == authSession.AUTHENTICATED:
+if int(authSessionState) == authSession.AUTHENTICATED:
     print("user has accepted the auth session '" + authSession.authSessionID + "'")
 
     # release auth session to free resources serverside
@@ -91,7 +90,7 @@ if authSessionState == authSession.AUTHENTICATED:
     print("auth session '" + authSession.authSessionID + "' was released.")
 
 
-elif authSessionState == authSession.DENIED:
+elif int(authSessionState) == authSession.DENIED:
     print("user has denied the auth session '" + authSession.authSessionID + "'.")
     authSessionState = secSignIDApi.cancelAuthSession(authSession); # after the auth session is successfully canceled it is not possible to inquire the status again
     if authSessionState == authSession.CANCELED:
@@ -101,7 +100,7 @@ elif authSessionState == authSession.DENIED:
 else:
     print("auth session '" + authSession.authSessionID + "' has state " + authSessionState + ".")
     authSessionState = secSignIDApi.cancelAuthSession(authSession); # after the auth session is successfully canceled it is not possible to inquire the status again
-    if authSessionState == authSession.CANCELED:
+    if int(authSessionState) == authSession.CANCELED:
         print("authentication session successfully cancelled...")
 
 

@@ -1,4 +1,4 @@
-# $Id: SecSignIDApi.py,v 1.5 2014/05/28 15:10:23 titus Exp $
+# $Id: SecSignIDApi.py,v 1.6 2014/11/26 17:25:15 titus Exp $
 
 #
 # SecSign ID Api in python.
@@ -12,7 +12,7 @@ import os
 import curl, pycurl
 import cStringIO
 
-SCRIPT_REVISION = '$Revision: 1.5 $'
+SCRIPT_REVISION = '$Revision: 1.6 $'
     
 class AuthSession:
 
@@ -122,7 +122,7 @@ class AuthSession:
           
 
             # authSessionDict mandatory parameter
-            if dict['secsignid'] is None:
+            if authSessionDict['secsignid'] is None:
                 raise InputError("Parameter array does not contain a value 'secsignid'.")
             
             if authSessionDict['authsessionid'] is None:
@@ -134,17 +134,17 @@ class AuthSession:
             if authSessionDict['serviceaddress'] is None and not ignoreOptionalParameter:
                 raise InputError("Parameter array does not contain a value 'serviceaddress'.")
             
-
             if authSessionDict['requestid'] is None:
                 raise InputError("Parameter array does not contain a value 'requestid'.")
             
             
-            secSignID = authSessionDict['secsignid'];
-            authSessionID = authSessionDict['authsessionid'];
-            authSessionIconData = authSessionDict['authsessionicondata'];
-            requestingServiceName = authSessionDict['servicename'];
-            requestingServiceAddress = authSessionDict['serviceaddress'];
-            requestID = authSessionDict['requestid'];
+            self.secSignID = authSessionDict['secsignid'];
+            self.authSessionID = authSessionDict['authsessionid'];
+            self.authSessionIconData = authSessionDict['authsessionicondata'];
+            self.requestingServiceName = authSessionDict['servicename'];
+            self.requestingServiceAddress = authSessionDict['serviceaddress'];
+            self.requestID = authSessionDict['requestid'];
+
 
 
  
@@ -152,7 +152,7 @@ class AuthSession:
 # Class to connect to a secsign id server. The class will check secsign id server certificate and request for authentication session generation for a given
 # user id which is called secsign id. Each authentication session generation needs a new instance of this class.
 #
-# @version $Id: SecSignIDApi.py,v 1.5 2014/05/28 15:10:23 titus Exp $
+# @version $Id: SecSignIDApi.py,v 1.6 2014/11/26 17:25:15 titus Exp $
 # @author SecSign Technologies Inc.
 #
 class SecSignIDApi:
@@ -178,8 +178,9 @@ class SecSignIDApi:
         firstSpace = SCRIPT_REVISION.find(" ")
         lastSpace = SCRIPT_REVISION.find(" ", firstSpace+1)
         
-        __scriptVersion = SCRIPT_REVISION[firstSpace:-lastSpace]
-        __referer = self.__class__.__name___ + "_Python"
+        self.__scriptVersion = SCRIPT_REVISION[firstSpace:-lastSpace]
+        #self.__referer = self.__class__.__name___ + "_Python"
+        self.__referer = "SecSignIDApi_Python"
 
     #
     #
@@ -201,7 +202,7 @@ class SecSignIDApi:
     # Sets an optional plugin name
     #
     def setPluginName(self, pn):
-        self.__pluginName = pn
+        __pluginName = pn
 
     #
     # Gets last response
@@ -215,32 +216,32 @@ class SecSignIDApi:
     #
     def requestAuthSession(self, secsignid, servicename, serviceadress):
     
-        __log("Call of function 'requestAuthSession'.")
+        self.__log("Call of function 'requestAuthSession'.")
                 
         if servicename is None:
-            __log("Parameter servicename must not be None.")
+            self.__log("Parameter servicename must not be None.")
             raise InputError("Parameter servicename must not be None.")
         
                 
         if serviceadress is None:
-            __log("Parameter serviceadress must not be None.")
+            self.__log("Parameter serviceadress must not be None.")
             raise InputError("Parameter serviceadress must not be None.")
 
                 
         if secsignid is None:
-            __log("Parameter secsignid must not be None.")
+            self.__log("Parameter secsignid must not be None.")
             raise InputError("Parameter secsignid must not be None.")
             
                 
         requestParameter = dict({'request':'ReqRequestAuthSession', 'secsignid' : secsignid, 'servicename': servicename, 'serviceaddress' : serviceadress});
                 
-        if __pluginName is not None:
-            requestParameter['pluginname'] = __pluginName
+        if self.__pluginName is not None:
+            requestParameter['pluginname'] = self.__pluginName
         
-        response      = __send(requestParameter, None);
+        response      = self.__send(requestParameter, None);
         
         authSession = AuthSession();
-        authSession.createAuthSessionFromArray(response)
+        authSession.createAuthSessionFromArray(response, True)
         return authSession
 
     #
@@ -248,16 +249,16 @@ class SecSignIDApi:
     #
     def getAuthSessionState(self, authSession):
 
-        __log("Call of function 'getAuthSessionState'.");
+        self.__log("Call of function 'getAuthSessionState'.");
     
-        if authSession is None or type(authSession) is not AuthSession:
+        if authSession is None:
             message = "Parameter authSession is not an instance of AuthSession. type(authSession)={0}".format(type(authSession))
-            __log(message)
+            self.__log(message)
             raise InputError(message)
 
     
         requestParameter = dict({'request':'ReqGetAuthSessionState'})
-        response = __send(requestParameter, AuthSession)
+        response = self.__send(requestParameter, authSession)
         return response['authsessionstate']
 
     #
@@ -265,15 +266,15 @@ class SecSignIDApi:
     #
     def cancelAuthSession(self, authSession):
         
-        __log("Call of function 'cancelAuthSession'.");
+        self.__log("Call of function 'cancelAuthSession'.");
                 
-        if authSession is None or type(authSession) is not AuthSession:
+        if authSession is None:
             message = "Parameter authSession is not an instance of AuthSession. type(authSession)={0}".format(type(authSession))
-            __log(message)
+            self.__log(message)
             raise InputError(message)
                 
         requestParameter = dict({'request':'ReqCancelAuthSession'})
-        response = __send(requestParameter, AuthSession)
+        response = self.__send(requestParameter, authSession)
         return response['authsessionstate']
 
     #
@@ -281,16 +282,16 @@ class SecSignIDApi:
     #
     def releaseAuthSession(self, authSession):
     
-        __log("Call of function 'releaseAuthSession'.");
+        self.__log("Call of function 'releaseAuthSession'.");
     
-        if authSession is None or type(authSession) is not AuthSession:
+        if authSession is None:
             message = "Parameter authSession is not an instance of AuthSession. type(authSession)={0}".format(type(authSession))
-            __log(message)
+            self.__log(message)
             raise InputError(message)
     
 
         requestParameter = dict({'request':'ReqReleaseAuthSession'})
-        response = __send(requestParameter, AuthSession)
+        response = self.__send(requestParameter, authSession)
         return response['authsessionstate']
 
     #
@@ -299,63 +300,63 @@ class SecSignIDApi:
     #
     def __send(self, parameter, authSession):
 
-        requestQuery = urllib.urlencode(__buildParameterArray(parameter, authSession))
+        requestQuery = urllib.urlencode(self.__buildParameterArray(parameter, authSession))
         timeout_in_seconds = 15
             
         # create cURL resource
-        ch = __createCurlHandle(secSignIDServer, secSignIDServerPort, requestQuery, timeout_in_seconds)
-        __log("curl init: " + ch)
+        ch = self.__createCurlHandle(self.__secSignIDServer, self.__secSignIDServerPort, requestQuery, timeout_in_seconds)
+        self.__log("curl init: " + str(ch))
     
         # output contains the output string
-        __log("curl sent params: " + requestQuery)
+        self.__log("curl sent params: " + requestQuery)
         
         output = cStringIO.StringIO()
         ch.setopt(ch.WRITEFUNCTION, output.write)
         ch.perform() # pycurl.exec(ch)
             
         if ch.getinfo(pycurl.HTTP_CODE) is not 200:
-            __log("curl error: " + ch.errstr())
+            self.__log("curl error: " + ch.errstr())
 
     
         # close curl resource to free up system resources
-        __log("curl.close(): " + ch)
+        self.__log("curl.close(): " + str(ch))
         ch.close()
     
         # check if output is NULL. in that case the secsign id might not have been reached.
         if output.getvalue() is None:
     
-            __log("curl: output is None. Server {0}:{1} has not been reached.".format(secSignIDServer, secSignIDServerPort))
+            self.__log("curl: output is None. Server {0}:{1} has not been reached.".format(secSignIDServer, secSignIDServerPort))
         
             if secSignIDServer_fallback is not None:
             
-                __log("curl: get new handle from fallback server.");
-                ch = __createCurlHandle(secSignIDServer_fallback, secSignIDServerPort_fallback, requestQuery, timeout_in_seconds)
+                self.__log("curl: get new handle from fallback server.");
+                ch = self.__createCurlHandle(secSignIDServer_fallback, secSignIDServerPort_fallback, requestQuery, timeout_in_seconds)
                 
                 output = cStringIO.StringIO()
                 ch.setopt(ch.WRITEFUNCTION, output.write)
                 
-                __log("curl init: " + ch + " connecting to " + ch.getInfo(pycurl.EFFECTIVE_URL))
+                self.__log("curl init: " + ch + " connecting to " + ch.getInfo(pycurl.EFFECTIVE_URL))
             
                 # output contains the output string
                 ch.perform();
                 if output.getvalue() is None:
             
-                    __log("output is None. Fallback server {0}:{1} has not been reached.".format(secSignIDServer_fallback, secSignIDServerPort_fallback))
-                    __log("curl error: " + ch.errstr())
+                    self.__log("output is None. Fallback server {0}:{1} has not been reached.".format(secSignIDServer_fallback, secSignIDServerPort_fallback))
+                    self.__log("curl error: " + ch.errstr())
                     raise ConnectionError("curl.perform() error: can't connect to Server - " + ch.errstr())
             
                 # close curl resource to free up system resources
-                __log("curl.close(): " + ch)
+                self.__log("curl.close(): " + ch)
                 ch.close()
             else :
-                __log("curl: no fallback server has been specified.")
+                self.__log("curl: no fallback server has been specified.")
 
         __lastResponse = output.getvalue()
-        __log("curl.perform() response: {}".format(__lastResponse))
+        self.__log("curl.perform() response: {}".format(__lastResponse))
 
             
         output.close()
-        return  __checkResponse(__lastResponse);
+        return  self.__checkResponse(__lastResponse);
 
 
     #
@@ -364,8 +365,8 @@ class SecSignIDApi:
     def __buildParameterArray(self, parameter, authSession):
 
         # mandatoryParams = array('apimethod' => referer, 'scriptversion' => scriptVersion);
-        mandatoryParams = {'apimethod':referer};
-                        
+        mandatoryParams = {'apimethod':self.__referer}
+		
         if authSession is not None:
             # add auth session data to mandatory parameter array
             authSessionData = {'secsignid' : authSession.secSignID, 'authsessionid' : authSession.authSessionID, 'requestid' : authSession.requestID}
@@ -382,8 +383,8 @@ class SecSignIDApi:
     def __checkResponse(self, response):
         if response is None:
             message = "Could not connect to host '{0}:{1}'".format(secSignIDServer, secSignIDServerPort)
-            __log(message)
-            raise ConnectionError(message)
+            self.__log(message)
+            raise InputError(message)
     
         # server send parameter strings like:
         # var1=value1&var2=value2&var3=value3&...
@@ -393,13 +394,15 @@ class SecSignIDApi:
         valuePairs = string.split(response, '&');
         for pair in valuePairs:
             key_value = string.split(pair, '=', 2);
-            responseDict[key_value[0]] = key_value[1];
+            if len(key_value) > 1:
+	            responseDict[key_value[0]] = key_value[1];
 
     
         # check if server send a parameter named 'error'
-        if responseDict['error'] is not None:
-            __log("SecSign ID server sent error. code=" + responseDict['error'] + " message=" + responseDict['errormsg'])
-            raise InputError(responseDict['errormsg'], responseDict['error'])
+        #if responseDict['error'] is not None:
+        if 'error' in responseDict.keys():
+            self.__log("SecSign ID server sent error. code=" + responseDict['error'] + " message=" + responseDict['errormsg'])
+            raise InputError(responseDict['errormsg'])
 
         return responseDict
 
@@ -408,6 +411,7 @@ class SecSignIDApi:
     #
     # http://www.angryobjects.com/2011/10/15/http-with-python-pycurl-by-example/
     # http://pycurl.sourceforge.net/
+    # https://github.com/pycurl/pycurl
     #
     def __createCurlHandle(self, server, port, parameter, timeout_in_seconds):
 
@@ -418,7 +422,7 @@ class SecSignIDApi:
         c.setopt(c.FRESH_CONNECT, 1)
         
         # return the transfer as a string
-        c.setopt(c.RETURNTRANSFER, 1)
+        #c.setopt(c.RETURNTRANSFER, 1)
         
         # value 0 will strip header information in response 
         c.setopt(c.HEADER, 0)
@@ -426,13 +430,29 @@ class SecSignIDApi:
         # make sure the common name of the certificate's subject matches the server's host name
         c.setopt(c.SSL_VERIFYHOST, 2)
         # validate the certificate chain of the server
-        c.setopt(c.SSL_VERIFYPEER, true)
+        c.setopt(c.SSL_VERIFYPEER, True)
         # the CA certificates
-        c.setopt(c.SSL_CAINFO, os.path.dirname(os.path.abspath(__file__)) + '/curl-ca-bundle.crt')
+        #c.setopt(pycurl.SSL_CAINFO, os.path.dirname(os.path.abspath(__file__)) + '/curl-ca-bundle.crt')
 
         # add all parameter and change request mode to POST
         c.setopt(c.POST, 2)
         c.setopt(c.POSTFIELDS, parameter)
             
         return c
-    
+  
+  
+# definitions of our error classes
+class Error(Exception):
+    """Base class for exceptions in this module."""
+    pass
+
+class InputError(Error):
+    """Exception raised for errors in the input.
+
+    Attributes:
+        expr -- input expression in which the error occurred
+        msg  -- explanation of the error
+    """
+
+    def __init__(self, msg):
+        self.strerror = msg
