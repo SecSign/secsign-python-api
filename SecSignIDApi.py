@@ -1,9 +1,9 @@
-# $Id: SecSignIDApi.py,v 1.6 2014/11/26 17:25:15 titus Exp $
+# $Id: SecSignIDApi.py,v 1.7 2015/04/10 15:42:07 titus Exp $
 
 #
 # SecSign ID Api in python.
 #
-# (c) 2014 SecSign Technologies Inc.
+# (c) 2014, 2015 SecSign Technologies Inc.
 #
 
 import string
@@ -12,7 +12,7 @@ import os
 import curl, pycurl
 import cStringIO
 
-SCRIPT_REVISION = '$Revision: 1.6 $'
+SCRIPT_REVISION = '$Revision: 1.7 $'
     
 class AuthSession:
 
@@ -152,7 +152,7 @@ class AuthSession:
 # Class to connect to a secsign id server. The class will check secsign id server certificate and request for authentication session generation for a given
 # user id which is called secsign id. Each authentication session generation needs a new instance of this class.
 #
-# @version $Id: SecSignIDApi.py,v 1.6 2014/11/26 17:25:15 titus Exp $
+# @version $Id: SecSignIDApi.py,v 1.7 2015/04/10 15:42:07 titus Exp $
 # @author SecSign Technologies Inc.
 #
 class SecSignIDApi:
