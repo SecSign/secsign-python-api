@@ -1,4 +1,3 @@
-# $Id: SecSignIDApi.py,v 1.7 2015/04/10 15:42:07 titus Exp $
 
 #
 # SecSign ID Api in python.
@@ -12,140 +11,8 @@ import os
 import curl, pycurl
 import cStringIO
 
-SCRIPT_REVISION = '$Revision: 1.7 $'
+SCRIPT_VERSION = '1.9'
     
-class AuthSession:
-
-        #
-        # No State: Used when the session state is undefined. 
-        #
-        NOSTATE = 0;
-        
-        #
-        # Pending: The session is still pending for authentication.
-        #
-        PENDING = 1;
-        
-        #
-        # Expired: The authentication timeout has been exceeded.
-        #
-        EXPIRED = 2;
-        
-        #
-        # Authenticated: The user was successfully authenticated.
-        #
-        AUTHENTICATED = 3;
-        
-        #
-        # Denied: The user denied this session.
-        #
-        DENIED = 4;
-		
-        #
-        # Suspended: The server suspended this session, because another authentication request was received while this session was still pending.
-        #
-        SUSPENDED = 5;
-        
-        #
-        # Canceled: The service has canceled this session.
-        #
-        CANCELED = 6;
-        
-        #
-        # Fetched: The device has already fetched the session, but the session hasn't been authenticated or denied yet.
-        #
-        FETCHED = 7;
-    
-        #
-        # Invalid: This session has become invalid.
-        #
-        INVALID = 8;
-        
-        
-        # 
-        # the secsign id the authentication session has been craeted for
-        #
-        secSignID = None;
-        
-        #
-        # authentication session id
-        #
-        authSessionID = None;
-        
-        #
-        # the name of the requesting service. this will be shown at the smartphone
-        #
-        requestingServiceName = None;
-        
-        #
-        # the address, a valid url, of the requesting service. this will be shown at the smartphone
-        #
-        requestingServiceAddress = None;
-        
-        #
-        # the request ID is similar to a server side session ID. 
-        # it is generated after a authentication session has been created. all other request like dispose, withdraw or to get the auth session state
-        # will be rejected if a request id is not specified.
-        #
-        requestID = None;
-        
-        #
-        # icon data of the so called access pass. the image data needs to be displayed otherwise the user does not know which access apss he needs to choose in order to accept the authentication session.
-        #
-        authSessionIconData = None;
-        
-        #
-        # constructor
-        #
-        def __init__(self):
-            pass
-            
-        #
-        # method to get string representation of this authentication session object
-        #
-        def __toString(self):
-            return "{0} ({1}, {2}, icondata={3})".format(authSessionID, secSignID, requestingServiceAddress, authSessionIconData);
-        
-        #
-        # gets the auth session as pythons dictionary
-        #
-        def getAuthSessionAsArray(self):
-            return {'secsignid':secSignID,'authsessionid':authSessionID,'servicename':requestingServiceName,'serviceaddress':requestingServiceAddress,'authsessionicondata':authSessionIconData,'requestid':requestID};
-        
-        
-        #
-        # Creates/Fills the auth session object using the given dictionary.
-        #
-        def createAuthSessionFromArray(self, authSessionDict, ignoreOptionalParameter):
-            if authSessionDict is None:
-                raise InputError("Parameter array is None.");
-          
-
-            # authSessionDict mandatory parameter
-            if authSessionDict['secsignid'] is None:
-                raise InputError("Parameter array does not contain a value 'secsignid'.")
-            
-            if authSessionDict['authsessionid'] is None:
-                raise InputError("Parameter array does not contain a value 'authsessionid'.")
-            
-            if authSessionDict['servicename'] is None and not ignoreOptionalParameter:
-                raise InputError("Parameter array does not contain a value 'servicename'.")
-            
-            if authSessionDict['serviceaddress'] is None and not ignoreOptionalParameter:
-                raise InputError("Parameter array does not contain a value 'serviceaddress'.")
-            
-            if authSessionDict['requestid'] is None:
-                raise InputError("Parameter array does not contain a value 'requestid'.")
-            
-            
-            self.secSignID = authSessionDict['secsignid'];
-            self.authSessionID = authSessionDict['authsessionid'];
-            self.authSessionIconData = authSessionDict['authsessionicondata'];
-            self.requestingServiceName = authSessionDict['servicename'];
-            self.requestingServiceAddress = authSessionDict['serviceaddress'];
-            self.requestID = authSessionDict['requestid'];
-
-
 
  
 #
@@ -174,12 +41,7 @@ class SecSignIDApi:
     # constructor
     #
     def __init__(self):
-        # script version from cvs revision string
-        firstSpace = SCRIPT_REVISION.find(" ")
-        lastSpace = SCRIPT_REVISION.find(" ", firstSpace+1)
-        
-        self.__scriptVersion = SCRIPT_REVISION[firstSpace:-lastSpace]
-        #self.__referer = self.__class__.__name___ + "_Python"
+        self.__scriptVersion = SCRIPT_VERSION
         self.__referer = "SecSignIDApi_Python"
 
     #
@@ -232,7 +94,13 @@ class SecSignIDApi:
             self.__log("Parameter secsignid must not be None.")
             raise InputError("Parameter secsignid must not be None.")
             
-                
+        # convert string to lower case and strip/trim whitespace
+        secsignid = secsignid.lower().strip()
+        if not secsignid:
+        	self.__log("Parameter secsignid must not be empty.")
+            raise InputError("Parameter secsignid must not be empty.")
+            
+            
         requestParameter = dict({'request':'ReqRequestAuthSession', 'secsignid' : secsignid, 'servicename': servicename, 'serviceaddress' : serviceadress});
                 
         if self.__pluginName is not None:
@@ -369,7 +237,7 @@ class SecSignIDApi:
 		
         if authSession is not None:
             # add auth session data to mandatory parameter array
-            authSessionData = {'secsignid' : authSession.secSignID, 'authsessionid' : authSession.authSessionID, 'requestid' : authSession.requestID}
+            authSessionData = {'secsignid' : authSession.secSignID.lower(), 'authsessionid' : authSession.authSessionID, 'requestid' : authSession.requestID}
             mandatoryParams.update(authSessionData)
 
         result = dict(parameter).copy()
@@ -439,6 +307,145 @@ class SecSignIDApi:
         c.setopt(c.POSTFIELDS, parameter)
             
         return c
+        
+# end oc class SecSignIDApi
+        
+        
+        
+class AuthSession:
+
+        #
+        # No State: Used when the session state is undefined. 
+        #
+        NOSTATE = 0;
+        
+        #
+        # Pending: The session is still pending for authentication.
+        #
+        PENDING = 1;
+        
+        #
+        # Expired: The authentication timeout has been exceeded.
+        #
+        EXPIRED = 2;
+        
+        #
+        # Authenticated: The user was successfully authenticated.
+        #
+        AUTHENTICATED = 3;
+        
+        #
+        # Denied: The user denied this session.
+        #
+        DENIED = 4;
+		
+        #
+        # Suspended: The server suspended this session, because another authentication request was received while this session was still pending.
+        #
+        SUSPENDED = 5;
+        
+        #
+        # Canceled: The service has canceled this session.
+        #
+        CANCELED = 6;
+        
+        #
+        # Fetched: The device has already fetched the session, but the session hasn't been authenticated or denied yet.
+        #
+        FETCHED = 7;
+    
+        #
+        # Invalid: This session has become invalid.
+        #
+        INVALID = 8;
+        
+        
+        # 
+        # the secsign id the authentication session has been craeted for
+        #
+        secSignID = None;
+        
+        #
+        # authentication session id
+        #
+        authSessionID = None;
+        
+        #
+        # the name of the requesting service. this will be shown at the smartphone
+        #
+        requestingServiceName = None;
+        
+        #
+        # the address, a valid url, of the requesting service. this will be shown at the smartphone
+        #
+        requestingServiceAddress = None;
+        
+        #
+        # the request ID is similar to a server side session ID. 
+        # it is generated after a authentication session has been created. all other request like dispose, withdraw or to get the auth session state
+        # will be rejected if a request id is not specified.
+        #
+        requestID = None;
+        
+        #
+        # icon data of the so called access pass. the image data needs to be displayed otherwise the user does not know which access apss he needs to choose in order to accept the authentication session.
+        #
+        authSessionIconData = None;
+        
+        #
+        # constructor
+        #
+        def __init__(self):
+            pass
+            
+        #
+        # method to get string representation of this authentication session object
+        #
+        def __toString(self):
+            return "{0} ({1}, {2}, icondata={3})".format(authSessionID, secSignID, requestingServiceAddress, authSessionIconData);
+        
+        #
+        # gets the auth session as pythons dictionary
+        #
+        def getAuthSessionAsArray(self):
+            return {'secsignid':secSignID,'authsessionid':authSessionID,'servicename':requestingServiceName,'serviceaddress':requestingServiceAddress,'authsessionicondata':authSessionIconData,'requestid':requestID};
+        
+        
+        #
+        # Creates/Fills the auth session object using the given dictionary.
+        #
+        def createAuthSessionFromArray(self, authSessionDict, ignoreOptionalParameter):
+            if authSessionDict is None:
+                raise InputError("Parameter array is None.");
+          
+
+            # authSessionDict mandatory parameter
+            if authSessionDict['secsignid'] is None:
+                raise InputError("Parameter array does not contain a value 'secsignid'.")
+            
+            if authSessionDict['authsessionid'] is None:
+                raise InputError("Parameter array does not contain a value 'authsessionid'.")
+            
+            if authSessionDict['servicename'] is None and not ignoreOptionalParameter:
+                raise InputError("Parameter array does not contain a value 'servicename'.")
+            
+            if authSessionDict['serviceaddress'] is None and not ignoreOptionalParameter:
+                raise InputError("Parameter array does not contain a value 'serviceaddress'.")
+            
+            if authSessionDict['requestid'] is None:
+                raise InputError("Parameter array does not contain a value 'requestid'.")
+            
+            
+            self.secSignID = authSessionDict['secsignid'];
+            self.authSessionID = authSessionDict['authsessionid'];
+            self.authSessionIconData = authSessionDict['authsessionicondata'];
+            self.requestingServiceName = authSessionDict['servicename'];
+            self.requestingServiceAddress = authSessionDict['serviceaddress'];
+            self.requestID = authSessionDict['requestid'];
+
+
+# end fo class AuthSession
+
   
   
 # definitions of our error classes
